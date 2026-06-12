@@ -1,4 +1,4 @@
-// Perferences and headers
+// Preferences and headers
 // For Tweak.x
 #import <YouTubeHeader/_ASDisplayView.h>
 #import <YouTubeHeader/YTIIcon.h>
@@ -51,15 +51,19 @@
 
 #define IS_ENABLED(k) [[NSUserDefaults standardUserDefaults] boolForKey:k]
 #define INTFORVAL(v) [[NSUserDefaults standardUserDefaults] integerForKey:v]
+
 // Downloading
 #define DownloadManager @"YouModDownloadManager"
 #define DownloadSaveToPhotos @"YouModDownloadSaveToPhotos"
 #define DownloadPreferDRCAudio @"YouModDownloadPreferDRCAudio"
+
 // Cache
 #define AutoClearCache @"YouModAutoClearCache"
+
 // Appearance
 #define OLEDTheme @"YouModEnablesOLEDTheme"
 #define OLEDKeyboard @"YouModEnablesOLEDKeyboard"
+
 // Navigation bar
 #define HideYTLogo @"YouModHideYTLogo"
 #define YTPremiumLogo @"YouModYTPremiumLogo"
@@ -67,6 +71,7 @@
 #define HideSearch @"YouModHideSearchButton"
 #define HideVoiceSearch @"YouModHideVoiceSearchButton"
 #define HideCastButtonNav @"YouModHideCastButtonNavigationBar"
+
 // Feed
 #define HideSubbar @"YouModHideSubbar"
 #define HideGenMusicShelf @"YouModHideGenMusicShelf"
@@ -76,6 +81,7 @@
 #define HideSubButton @"YouModHideSubscribeButton"
 #define HideShoppingButton @"YouModHideShoppingButton"
 #define HideMemberButton @"YouModHideMemberButton"
+
 // Player
 #define HideAutoPlayToggle @"YouModHideAutoPlayToggle"
 #define HideCaptionsButton @"YouModHideCaptionsButton"
@@ -119,6 +125,7 @@
 #define HideClipButton @"YouModHideClipButton"
 #define HideRemixButton @"YouModHideRemixButton"
 #define HideSaveButton @"YouModHideSaveButton"
+
 // Shorts
 #define HideShortsLikeButton @"YouModHideShortsLikeButton"
 #define HideShortsDisLikeButton @"YouModHideShortsDisLikeButton"
@@ -136,6 +143,7 @@
 #define HideShortsToVideo @"YouModHideShortsToVideo"
 #define EnablesShortsQuality @"YouModEnablesShortsQuality"
 #define ShowShortsSeekbar @"YouModShowShortsSeekbar"
+
 // Tab bar
 #define DefaultTab @"YouModDefaultStartupTab"
 #define HideTabIndi @"YouModHideTabIndicators"
@@ -144,6 +152,7 @@
 #define HideShortsTab @"YouModHideShortsTab"
 #define HideCreateButton @"YouModHideCreateButton"
 #define HideSubscriptTab @"YouModHideSubscriptionsTab"
+
 // Miscellaneous
 #define BackgroundPlayback @"YouModEnablesBackgroundPlayback"
 #define DisablesShortsPiP @"YouModTrytoDisablesShortsPiP"
@@ -168,7 +177,7 @@ typedef NS_ENUM(NSUInteger, GestureSection) {
 };
 
 @interface YTITopbarLogoRenderer : NSObject
-@property(readonly, nonatomic) YTIIcon *iconImage;
+@property (readonly, nonatomic) YTIIcon *iconImage;
 @end
 
 @interface YTRightNavigationButtons (YouMod)
@@ -204,7 +213,8 @@ typedef NS_ENUM(NSUInteger, GestureSection) {
 @interface YTPlayerViewController (YouMod) <UIGestureRecognizerDelegate>
 @property (nonatomic, retain) UIPanGestureRecognizer *YouModPanGesture;
 @property (nonatomic, retain) UILabel *YouModGestureHUD;
-- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer;
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer;
 - (void)YouModAutoFullscreen;
 - (void)YouModTurnOffCaptions;
 - (void)setActiveCaptionTrack:(id)arg1 source:(long long)arg2;
@@ -241,7 +251,7 @@ typedef NS_ENUM(NSUInteger, GestureSection) {
 - (void)YouModAutoClearCache;
 @end
 
-// Custom perferences logics
+// Custom preferences logic
 @interface YouModPrefsManager : NSObject <UIDocumentPickerDelegate>
 + (instancetype)sharedManager;
 - (void)exportYouModSettingsFromVC:(UIViewController *)vc;
