@@ -1,93 +1,217 @@
 #import "Headers.h"
 
-// OLEDKeyboard (https://github.com/dayanch96/OledKeyboard)
-static BOOL isDarkMode(UIView *view) {
+static inline BOOL HBIsDarkMode(UIView *view) {
+    if (!view) return NO;
+
     if ([view respondsToSelector:@selector(_mapkit_isDarkModeEnabled)]) {
         return view._mapkit_isDarkModeEnabled;
     }
-    return view._viewControllerForAncestor.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark;
+
+    return view.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark;
 }
 
-// OLED theme (uYouEnhanced)
+static inline UIColor *HBBlackColor(void) {
+    return UIColor.blackColor;
+}
+
+static inline UIColor *HBClearColor(void) {
+    return UIColor.clearColor;
+}
+
+static inline UIColor *HBBlack90Color(void) {
+    static UIColor *color;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        color = [[UIColor blackColor] colorWithAlphaComponent:0.9];
+    });
+    return color;
+}
+
+static inline void HBSetBackgroundColorIfNeeded(UIView *view, UIColor *color) {
+    if (view && view.backgroundColor != color) {
+        view.backgroundColor = color;
+    }
+}
+
+static inline void HBApplyOLEDBackground(UIView *view) {
+    HBSetBackgroundColorIfNeeded(
+        view,
+        HBIsDarkMode(view) ? HBBlackColor() : HBClearColor()
+    );
+}
+
+static Class HBEmojiSearchInputViewClass(void) {
+    static Class cls;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        cls = NSClassFromString(@"TUIEmojiSearchInputView");
+    });
+    return cls;
+}
+
+static Class HBAutoFillInputViewClass(void) {
+    static Class cls;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        cls = NSClassFromString(@"_SFAutoFillInputView");
+    });
+    return cls;
+}
+
+static inline BOOL HBIsSpecialInputView(UIView *view) {
+    Class emojiClass = HBEmojiSearchInputViewClass();
+    Class autofillClass = HBAutoFillInputViewClass();
+
+    return (emojiClass && [view isKindOfClass:emojiClass]) ||
+           (autofillClass && [view isKindOfClass:autofillClass]);
+}
+
+#pragma mark - OLED Theme
+
 %group OLEDTheme
+
 %hook YTColor
-+ (UIColor *)black0 { return [UIColor blackColor]; }
-+ (UIColor *)black1 { return [UIColor blackColor]; }
-+ (UIColor *)black2 { return [UIColor blackColor]; }
-+ (UIColor *)black3 { return [UIColor blackColor]; }
-+ (UIColor *)black4 { return [UIColor blackColor]; }
+
++ (UIColor *)black0 { return HBBlackColor(); }
++ (UIColor *)black1 { return HBBlackColor(); }
++ (UIColor *)black2 { return HBBlackColor(); }
++ (UIColor *)black3 { return HBBlackColor(); }
++ (UIColor *)black4 { return HBBlackColor(); }
+
 %end
 
 %hook YTCommonColorPalette
-- (UIColor *)baseBackground { return self.pageStyle == 1 ? [UIColor blackColor] : %orig; }
-- (UIColor *)brandBackgroundSolid { return self.pageStyle == 1 ? [UIColor blackColor] : %orig; }
-- (UIColor *)brandBackgroundPrimary { return self.pageStyle == 1 ? [UIColor blackColor] : %orig; }
-- (UIColor *)brandBackgroundSecondary { return self.pageStyle == 1 ? [[UIColor blackColor] colorWithAlphaComponent:0.9] : %orig; }
-- (UIColor *)raisedBackground { return self.pageStyle == 1 ? [UIColor blackColor] : %orig; }
-- (UIColor *)staticBrandBlack { return self.pageStyle == 1 ? [UIColor blackColor] : %orig; }
-- (UIColor *)generalBackgroundA { return self.pageStyle == 1 ? [UIColor blackColor] : %orig; }
+
+- (UIColor *)baseBackground {
+    return self.pageStyle == 1 ? HBBlackColor() : %orig;
+}
+
+- (UIColor *)brandBackgroundSolid {
+    return self.pageStyle == 1 ? HBBlackColor() : %orig;
+}
+
+- (UIColor *)brandBackgroundPrimary {
+    return self.pageStyle == 1 ? HBBlackColor() : %orig;
+}
+
+- (UIColor *)brandBackgroundSecondary {
+    return self.pageStyle == 1 ? HBBlack90Color() : %orig;
+}
+
+- (UIColor *)raisedBackground {
+    return self.pageStyle == 1 ? HBBlackColor() : %orig;
+}
+
+- (UIColor *)staticBrandBlack {
+    return self.pageStyle == 1 ? HBBlackColor() : %orig;
+}
+
+- (UIColor *)generalBackgroundA {
+    return self.pageStyle == 1 ? HBBlackColor() : %orig;
+}
+
 %end
 
 %hook YTInnerTubeCollectionViewController
-- (UIColor *)backgroundColor:(NSInteger)pageStyle { return pageStyle == 1 ? [UIColor blackColor] : %orig; }
-%end
+
+- (UIColor *)backgroundColor:(NSInteger)pageStyle {
+    return pageStyle == 1 ? HBBlackColor() : %orig;
+}
+
 %end
 
+%end
+
+#pragma mark - OLED Keyboard
+
 %group OLEDKeyboard
+
 %hook UIKeyboard
+
 - (void)displayLayer:(id)arg1 {
     %orig;
-    self.backgroundColor = isDarkMode(self) ? [UIColor blackColor] : [UIColor clearColor];
+
+    HBSetBackgroundColorIfNeeded(
+        self,
+        HBIsDarkMode(self) ? HBBlackColor() : HBClearColor()
+    );
 }
+
 %end
 
 %hook UIPredictionViewController
+
 - (id)_currentTextSuggestions {
     UIKeyboard *keyboard = [%c(UIKeyboard) activeKeyboard];
-    if (isDarkMode(keyboard)) {
-        [self.view setBackgroundColor:[UIColor blackColor]];
-        keyboard.backgroundColor = [UIColor blackColor];
-    } else {
-        [self.view setBackgroundColor:[UIColor clearColor]];
-        keyboard.backgroundColor = [UIColor clearColor];
+
+    BOOL dark = HBIsDarkMode(keyboard);
+
+    HBSetBackgroundColorIfNeeded(
+        self.view,
+        dark ? HBBlackColor() : HBClearColor()
+    );
+
+    if (keyboard) {
+        HBSetBackgroundColorIfNeeded(
+            keyboard,
+            dark ? HBBlackColor() : HBClearColor()
+        );
     }
+
     return %orig;
 }
+
 %end
 
 %hook UIKeyboardDockView
+
 - (void)layoutSubviews {
     %orig;
-    self.backgroundColor = isDarkMode(self) ? [UIColor blackColor] : [UIColor clearColor];
+    HBApplyOLEDBackground(self);
 }
+
 %end
 
-// Since we can't hook a private framework class from UIKit, we check the class name through the nearest available from UIKit class
 %hook UIInputView
+
 - (void)layoutSubviews {
     %orig;
-    if ([self isKindOfClass:NSClassFromString(@"TUIEmojiSearchInputView")] // Emoji searching panel
-     || [self isKindOfClass:NSClassFromString(@"_SFAutoFillInputView")]) { // Autofill password
-        self.backgroundColor = isDarkMode(self) ? [UIColor blackColor] : [UIColor clearColor];
+
+    if (HBIsSpecialInputView(self)) {
+        HBApplyOLEDBackground(self);
     }
 }
+
 %end
 
 %hook UIKBVisualEffectView
+
 - (void)layoutSubviews {
     %orig;
-    if (isDarkMode(self)) {
-        self.backgroundEffects = nil;
-        self.backgroundColor = [UIColor blackColor];
+
+    if (HBIsDarkMode(self)) {
+        if (self.backgroundEffects != nil) {
+            self.backgroundEffects = nil;
+        }
+
+        HBSetBackgroundColorIfNeeded(
+            self,
+            HBBlackColor()
+        );
     }
 }
+
 %end
+
 %end
+
+#pragma mark - Constructor
 
 %ctor {
     if (IS_ENABLED(OLEDTheme)) {
         %init(OLEDTheme);
     }
+
     if (IS_ENABLED(OLEDKeyboard)) {
         %init(OLEDKeyboard);
     }
